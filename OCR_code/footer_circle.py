@@ -9,7 +9,7 @@ def detect_and_analyze_circles(image):
     
     # Define the region of interest (bottom 10% of the image)
     height, width = image.shape[:2]
-    roi_height = int(height * 0.1)
+    roi_height = int(height * 0.9)
     roi = gray[roi_height:, :]  # Selecting the bottom 10% of the image
 
     # Detect circles using HoughCircles
@@ -46,7 +46,7 @@ def detect_and_analyze_circles(image):
     return circle_data, image
 
 # Load the image
-image = cv2.imread('lined_final_edited.jpg')  # Replace 'lined_final_edited.jpg' with the path to your image
+image = cv2.imread('lined_final_edited.jpg') 
 
 # Detect and analyze circles in the bottom 10% of the page
 circle_data, image_with_contours = detect_and_analyze_circles(image.copy())
