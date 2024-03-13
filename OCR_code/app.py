@@ -1,63 +1,57 @@
-from flask import Flask, jsonify
-import subprocess
-import json
 import os
+from flask import Flask,render_template,redirect,url_for,request
+#import our OCR function
+from main import main
+#define a folder to store and later serve the images
+UPLOAD_FOLDER = '/static/Test_Images/'
 
+#allow files of a specific type
+ALLOWED_EXTENSIONS = set(['png','jpg','jpeg','gif','tiff','tif'])
 app = Flask(__name__)
+#app.config['DEBUG']=True
 
-def run_model1():
-    # Run your python file (test.py) in the background
-    subprocess.run(['python', 'test.py'])
+# function to check the file extension
+def allowed_file(filename):
+	return '.' in filename and \
+			filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+			
+# route and function to handle the home page
 
-    # Check if the extracted_info.json has been updated
-    json_file = 'extracted_info.json'
-    before = os.path.getmtime(json_file)
+# @app.route("/", methods=['GET', 'POST'])
+# def login():
+# 	if request.method == 'POST':
+# 		return redirect(url_for('upload'))
+# 		# return flask.redirect('/')
+		
+# 	# return render_template("login.html" )
+	
+# @app.route("/signup", methods=['GET', 'POST'])
 
-    # Perform some operations or checks here
-
-    after = os.path.getmtime(json_file)
-    if before != after:
-        print("JSON file has been updated")
-        return "JSON file has been updated"
-    else:
-        print("JSON file has not been updated")
-        return "JSON file has not been updated"
-
-def run_model2():
-    # Run your python file (footer_circle.py) in the background
-    subprocess.run(['python', 'footer_circle.py'])
-
-    # Check if the extraction_info.json has been updated
-    json_file = 'extraction_info.json'
-    before = os.path.getmtime(json_file)
-
-    # Perform some operations or checks here
-
-    after = os.path.getmtime(json_file)
-    if before != after:
-        print("JSON file has been updated")
-        return "JSON file has been updated"
-    else:
-        print("JSON file has not been updated")
-        return "JSON file has not been updated"
-
-def main():
-    output_data = {
-        "model1_output": run_model1(),
-        "model2_output": run_model2()
-    }
-
-    with open('output.json', 'w') as f:
-        json.dump(output_data, f)
-
-@app.route('/main', methods=['GET'])
-def main_route():
-    main()
-    
-    with open('output.json', 'r') as f:
-        output_data = json.load(f)
-    
-    return jsonify(output_data)
-
-if __name__ == '__main__':
-    app.run(debug=False)
+# def signup():
+# 	if request.method == 'POST':
+# 		return redirect(url_for('login'))
+# 	return render_template("signup.html")
+	
+	
+@app.route("/upload", methods=['GET','POST'])
+def upload():
+	if request.method == 'POST':
+		#check if there is a file in the request
+		if 'file' not in request.files:
+			return render_template('upload.html', msg='No file selected')
+		file = request.files['file']
+		# if no file is selected
+		if file.filename == '':
+			return render_template('upload.html', msg='No file selected')
+		if file and allowed_file(file.filename):
+			
+			# call the OCR function on it
+			extracted_text = ocr_core(file)
+			
+			# extract the text and display it
+			return render_template('upload.html', msg='Successfully processed', extracted_text=extracted_text,img_src=UPLOAD_FOLDER + file.filename)
+	elif request.method == 'GET':
+		return render_template('upload.html')
+		
+if __name__ == "__main__":
+	app.run(debug=True)
